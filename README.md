@@ -17,17 +17,40 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world recommendation systems like Spotify or YouTube Learn a dense mathematical model of user taste from billions of listening events, then use techniques like collaborative filtering (finding users who behave like you) and content-based filtering (finding items that share attributes with things you liked) to rank a massive catalog in milliseconds. They also factor in recency, session context, and business goals. This simulation prioritizes the content-based side: it compares explicit user taste preferences directly against song attributes to produce an interpretable score. The goal is transparency — every recommendation can be explained by pointing to exactly which features matched — rather than the black-box accuracy of a large production model.
 
-Some prompts to answer:
+### Song Features Used
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+Each `Song` object carries these attributes that feed into scoring:
 
-You can include a simple diagram or bullet list if helpful.
+- **genre** — categorical label (pop, rock, lofi, jazz, etc.) used for exact-match preference alignment
+- **mood** — categorical label (happy, chill, intense, etc.) matched against the user's preferred mood
+- **energy** — float 0–1, how driving or subdued the track feels; scored by closeness to the user's target
+- **acousticness** — float 0–1, how acoustic vs. electronic the track is; matched against the user's acoustic preference
+- **tempo_bpm** — beats per minute; available for future weighting experiments
+- **valence** — float 0–1, musical positivity; available for future weighting experiments
+- **danceability** — float 0–1; available for future weighting experiments
+
+### UserProfile Features Used
+
+Each `UserProfile` stores four preference dimensions:
+
+- **favorite_genre** — the genre the user wants prioritized
+- **favorite_mood** — the emotional tone the user is seeking right now
+- **target_energy** — a float 0–1 representing the user's desired energy level
+- **likes_acoustic** — boolean flag indicating whether the user prefers acoustic over electronic sounds
+
+### How a Score Is Computed
+
+```
+score(user, song) =
+    genre_weight   × (1 if song.genre == user.favorite_genre else 0)
+  + mood_weight    × (1 if song.mood  == user.favorite_mood  else 0)
+  + energy_weight  × (1 - |song.energy - user.target_energy|)
+  + acoustic_weight× (1 - |song.acousticness - (1.0 if user.likes_acoustic else 0.0)|)
+```
+
+Songs are then ranked by score descending and the top-k are returned.
 
 ---
 
