@@ -39,20 +39,27 @@ class Recommender:
         self.songs = songs
 
     def _score(self, user: UserProfile, song: Song) -> Tuple[float, List[str]]:
-        """Computes a numeric score and reasons for a Song against a UserProfile."""
+        """Computes a numeric score and reasons for a Song against a UserProfile.
+
+        Experiment – Weight Shift applied:
+          - Genre match: +1.0  (halved from original +2.0)
+          - Mood  match: +2.0  (unchanged)
+          - Energy proximity: up to +2.0  (doubled from original +1.0 max)
+          - Acoustic bonus: +1.0 (unchanged)
+        """
         score = 0.0
         reasons = []
 
         if song.genre == user.favorite_genre:
-            score += 2.0
-            reasons.append(f"genre match (+2.0)")
+            score += 1.0
+            reasons.append("genre match (+1.0)")
 
         if song.mood == user.favorite_mood:
             score += 2.0
-            reasons.append(f"mood match (+2.0)")
+            reasons.append("mood match (+2.0)")
 
         energy_diff = abs(song.energy - user.target_energy)
-        energy_points = round(1.0 - energy_diff, 2)
+        energy_points = round(2.0 * (1.0 - energy_diff), 2)
         score += energy_points
         reasons.append(f"energy proximity ({energy_points:+.2f})")
 
@@ -97,13 +104,19 @@ def load_songs(csv_path: str) -> List[Dict]:
 
 
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, str]:
-    """Scores a single song dict against user preference dict; returns (score, reasons_string)."""
+    """Scores a single song dict against user preference dict; returns (score, reasons_string).
+
+    Experiment – Weight Shift applied:
+      - Genre match: +1.0  (halved from original +2.0)
+      - Mood  match: +2.0  (unchanged)
+      - Energy proximity: up to +2.0  (doubled from original +1.0 max)
+    """
     score = 0.0
     reasons = []
 
     if song["genre"] == user_prefs.get("genre", ""):
-        score += 2.0
-        reasons.append("genre match (+2.0)")
+        score += 1.0
+        reasons.append("genre match (+1.0)")
 
     if song["mood"] == user_prefs.get("mood", ""):
         score += 2.0
@@ -111,7 +124,7 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, str]:
 
     target_energy = user_prefs.get("energy", 0.5)
     energy_diff = abs(song["energy"] - target_energy)
-    energy_points = round(1.0 - energy_diff, 2)
+    energy_points = round(2.0 * (1.0 - energy_diff), 2)
     score += energy_points
     reasons.append(f"energy proximity ({energy_points:+.2f})")
 

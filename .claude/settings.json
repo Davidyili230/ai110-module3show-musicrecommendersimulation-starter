@@ -6,7 +6,9 @@
       "Bash(python3 -m src.main)",
       "Bash(python3 -m pytest tests/ -v)",
       "Bash(pip3 install:*)",
-      "Bash(/Library/Frameworks/Python.framework/Versions/3.9/bin/python3 -m pytest tests/ -v)"
+      "Bash(/Library/Frameworks/Python.framework/Versions/3.9/bin/python3 -m pytest tests/ -v)",
+      "Bash(python src/main.py)",
+      "Bash(python3 src/main.py)"
     ]
   }
 }
